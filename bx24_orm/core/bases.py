@@ -198,7 +198,8 @@ class BxEntity(six.with_metaclass(BxEntityMeta)):
                                                                                 value=provided_id,
                                                                                 prefix="")
         self.to_instance_dict.update({'id': id_field})
-        for k, v in self.to_instance_dict.iteritems():
+        for k in self.to_instance_dict:
+            v = self.to_instance_dict[k]
             if isinstance(v, BxField):
                 value = kwargs[v.bx_name] if v.bx_name in kwargs else v.value
                 new_v = BxField(v.bx_name, value, v.prefix)

@@ -59,7 +59,8 @@ class BxQueryBuilder(object):
     def build(self):
         params = {}
         params.update(self._filter)
-        for k, v in self._order.iteritems():
+        for k in self._order:
+            v = self._order[k]
             params.update({'ORDER[{}]'.format(k): v})
         for i, v in enumerate(self._select):
             params.update({'SELECT[{}]'.format(i): v})
@@ -222,7 +223,8 @@ class BxBatchCommand(object):
         :return: dict with all strings in ascii
         """
         out_dict = {}
-        for k, v in in_dict.iteritems():
+        for k in in_dict:
+            v = in_dict[k]
             if isinstance(v, unicode):
                 v = v.encode('utf8')
             elif isinstance(v, str):

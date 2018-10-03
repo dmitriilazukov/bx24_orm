@@ -58,7 +58,8 @@ class BxField(AbstractField):
             for i, v in enumerate(value):
                 result.update(BxField.__format_value(key + '[{}]'.format(i), v))
         elif type(value) is dict:
-            for k, v in value.iteritems():
+            for k in value:
+                v = value[k]
                 result.update(BxField.__format_value(key + '[{}]'.format(str.upper(k)), v))
         elif value is not None:
             result.update({key: value})
