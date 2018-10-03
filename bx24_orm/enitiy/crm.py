@@ -3,7 +3,8 @@
 
 from bx24_orm.core.bases import BxEntity, BxField
 
-class Deal(BxEntity):
+
+class BaseDeal(BxEntity):
     title = BxField('TITLE', prefix='FIELDS')
     type_id = BxField('TYPE_ID')
     stage = BxField('STAGE_ID')
