@@ -7,7 +7,7 @@ BX_SETTINGS_MODULE = 'BX24_SETTINGS_MODULE'
 try:
     __settings_module = import_module(os.environ[BX_SETTINGS_MODULE])
 except KeyError:
-    __settings_module = []
+    raise RuntimeError('BX24_SETTINGS_MODULE is not specified')
 
 __module_dict_vars = {}
 for attr in dir(__settings_module):

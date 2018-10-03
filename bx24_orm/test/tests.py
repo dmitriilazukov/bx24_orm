@@ -1,10 +1,11 @@
-from django.test import TestCase
+from unittest import TestCase
 
-from app.outbound.factories import TokenStorageFactory  # TODO: recover token factory
-from bx24_orm.core import BxQuery, BxBatch, BxBatchCommand, BxQueryBuilder
+from bx24_orm.core.bx_interface import BxQuery, BxBatch, BxBatchCommand, BxQueryBuilder
 from bx24_orm.core.bases import BxEntity
-from bx24_orm.core import BxField
-
+from bx24_orm.core.fields import BxField
+from bx24_orm.core import settings, token_storage
+from bx24_orm.core.exceptions.code_exceptions import *
+from bx24_orm.core.exceptions.bx_exceptions import *
 
 class BxQueryBuilderTest(TestCase):
     def setUp(self):
@@ -47,12 +48,11 @@ class BxQueryBuilderTest(TestCase):
 
 class BxBatchTest(TestCase):
     def setUp(self):
-        self.token_factory = TokenStorageFactory()
-        self.token = get_token('ea77').token
-        self.domain = 'ea-77'
-        self.TEST_LEAD = 82898
-        self.TEST_DEAL = 9584
-        self.TEST_COMPANY = 150146
+        self.token = token_storage.get_token(settings.default_domain)
+        self.domain = settings.default_domain
+        self.TEST_LEAD = 1
+        self.TEST_DEAL = 1
+        self.TEST_COMPANY = 1
         self.test_queries = [('crm.lead.get', {'ID': self.TEST_LEAD}, 'raw_lead'),
                              ('crm.deal.get', {'ID': self.TEST_DEAL}, 'raw_deal'),
                              ('crm.company.get', {'ID': self.TEST_COMPANY}, 'raw_company')]
@@ -68,7 +68,6 @@ class BxBatchTest(TestCase):
         batch = BxBatch(batches, self.token, self.domain)
         created_commands = batch.commands
         for e in expected_batches:
-            print(created_commands[e], expected_batches[e])
             self.assertEqual(created_commands[e], expected_batches[e])
 
     def testConstructorFromBxQueryCommand(self):
@@ -82,7 +81,6 @@ class BxBatchTest(TestCase):
         batch = BxBatch(queries, self.token, self.domain)
         created_commands = batch.commands
         for e in expected_queries:
-            print(created_commands[e], expected_queries[e])
             self.assertEqual(created_commands[e], expected_queries[e])
 
     def testConstructorFail(self):
@@ -122,19 +120,12 @@ class BxBatchTest(TestCase):
         self.assertFalse(result.result_total)
 
 
-class SettingsTest(TestCase):
-    def testSettingsImport(self):
-        from app.bx24 import settings
-        self.assertTrue('ea-77' in settings.BX24_DOMAIN_SETTINGS)
-
-
 class BxQueryTest(TestCase):
     def setUp(self):
-        self.TEST_LEAD_ID = '82898'
+        self.TEST_LEAD_ID = '1'
         self.TEST_LEAD_QUERY = 'crm.lead.get'
-        self.token_factory = TokenStorageFactory()
-        self.domain = 'ea-77'
-        self.token = get_token('ea77').token
+        self.domain = settings.default_domain
+        self.token = token_storage.get_token(settings.default_domain)
 
     def testTokenNotProvided(self):
         params = {'ID': self.TEST_LEAD_ID}
@@ -195,8 +186,8 @@ class BasesAndMixinsTest(TestCase):
 
     def testBxFields(self):
         class WithBxFields(BxEntity):
-            id = BxField('ID', prefix="")
-            phone = BxField('PHONE')
+            id = BxField('ID', prefix='FIELDS')
+            phone = BxField('PHONE', prefix='FIELDS')
 
         wbf = WithBxFields(ID=self.TEST_ID, PHONE=self.PHONE)
         self.assertFalse(wbf.changed_fields)

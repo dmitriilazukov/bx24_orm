@@ -3,13 +3,15 @@
 import requests
 import shelve
 
+from os import path
+
 
 class DefaultTokenStorage(object):
     def __init__(self, bx_settings):
         self.bx_settings = bx_settings
 
     def save_token(self, domain, token, refresh_token):
-        storage = shelve.open(self.bx_settings.TOKEN_STORAGE_FILENAME)
+        storage = shelve.open(path.abspath(self.bx_settings.TOKEN_STORAGE_FILE_PATH))
         storage[domain] = {'token': token, 'refresh_token': refresh_token}
         storage.close()
 
