@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 from unittest import TestCase
-
 from datetime import datetime
 
 from bx24_orm.core.bx_interface import BxQuery, BxBatch, BxBatchCommand, BxQueryBuilder
@@ -85,6 +86,13 @@ class BxBatchTest(TestCase):
         created_commands = batch.commands
         for e in expected_queries:
             self.assertEqual(created_commands[e], expected_queries[e])
+
+    def testNotAsciiParameters(self):
+        defaut_domain = settings.default_domain
+        token = token_storage.get_token(defaut_domain)
+        command = BxQuery('crm.lead.list', {'FILTER[%NAME]': 'неаскистрока', 'auth': token}, defaut_domain)
+        result = command.call()
+        self.assertEqual(result.total, 0)
 
     def testConstructorFail(self):
         expected_queries = {}

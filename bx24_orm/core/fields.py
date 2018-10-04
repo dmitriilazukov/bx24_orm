@@ -14,8 +14,8 @@ class BxField(object):
         :param prefix: prefix before parameters dict, e.g FIELD in ORM module
         """
         self._value = value
-        self._bx_name = str.upper(bx_name)
-        self._prefix = str.upper(prefix)
+        self._bx_name = bx_name.upper()
+        self._prefix = prefix.upper()
         super(BxField, self).__init__()
 
     @property
@@ -54,7 +54,7 @@ class BxField(object):
         elif type(value) is dict:
             for k in value:
                 v = value[k]
-                result.update(BxField.__format_value(key + '[{}]'.format(str.upper(k)), v))
+                result.update(BxField.__format_value(key + '[{}]'.format(k.upper()), v))
         elif value is not None:
             result.update({key: value})
         return result

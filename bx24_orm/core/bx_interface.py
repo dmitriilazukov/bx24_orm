@@ -214,24 +214,6 @@ class BxCallableMixin(object):
 
 
 class BxBatchCommand(object):
-    @staticmethod
-    def __encoded_dict(in_dict):
-        # type: (dict) -> dict
-        """
-        Returns encoded dict to escape utf-8 urllib issues
-        :param in_dict: dict to encode
-        :return: dict with all strings in ascii
-        """
-        out_dict = {}
-        for k in in_dict:
-            v = in_dict[k]
-            if isinstance(v, unicode):
-                v = v.encode('utf8')
-            elif isinstance(v, str):
-                # Must be encoded in UTF-8
-                v.decode('utf8')
-            out_dict[k] = v
-        return out_dict
 
     def __init__(self, query, parameters, name=None):
         # type: (str, dict, str) -> None
@@ -254,7 +236,7 @@ class BxBatchCommand(object):
         cmd_name = self.name if self.name else str(uuid.uuid4())[:4]
         urlencode = urllib.parse.urlencode
         return {'cmd[{}]'.format(cmd_name): '{u}?{p}'.format(u=self.query,
-                                                             p=urlencode(self.__encoded_dict(self.parameters)))}
+                                                             p=urlencode(self.parameters))}
 
 
 class BxQuery(BxBatchCommand, BxCallableMixin):
