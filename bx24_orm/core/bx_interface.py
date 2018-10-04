@@ -2,10 +2,10 @@
 
 import requests
 import time
-import urllib
 import uuid
 from itertools import chain
 
+from six.moves import urllib
 from .exceptions import code_exceptions as ce
 
 
@@ -252,10 +252,7 @@ class BxBatchCommand(object):
         :return: dict, like { cmd[cmd_name]: url_with_params }
         """
         cmd_name = self.name if self.name else str(uuid.uuid4())[:4]
-        try:
-            urlencode = urllib.urlencode  # python3 compatibility hotfix
-        except AttributeError:
-            urlencode = urllib.parse.urlencode
+        urlencode = urllib.parse.urlencode
         return {'cmd[{}]'.format(cmd_name): '{u}?{p}'.format(u=self.query,
                                                              p=urlencode(self.__encoded_dict(self.parameters)))}
 
