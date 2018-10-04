@@ -1,11 +1,14 @@
 from unittest import TestCase
 
+from datetime import datetime
+
 from bx24_orm.core.bx_interface import BxQuery, BxBatch, BxBatchCommand, BxQueryBuilder
 from bx24_orm.core.bases import BxEntity
-from bx24_orm.core.fields import BxField
+from bx24_orm.core.fields import BxField, BxDateTime
 from bx24_orm.core import settings, token_storage
 from bx24_orm.core.exceptions.code_exceptions import *
 from bx24_orm.core.exceptions.bx_exceptions import *
+
 
 class BxQueryBuilderTest(TestCase):
     def setUp(self):
@@ -185,11 +188,15 @@ class BasesAndMixinsTest(TestCase):
         }
 
     def testBxFields(self):
+        now = datetime.now()
+        dtime_format = '%Y-%m-%dT%H:%M:%S.%f'
+
         class WithBxFields(BxEntity):
             id = BxField('ID', prefix='FIELDS')
             phone = BxField('PHONE', prefix='FIELDS')
+            dtime = BxDateTime('DATETIME')
 
-        wbf = WithBxFields(ID=self.TEST_ID, PHONE=self.PHONE)
+        wbf = WithBxFields(ID=self.TEST_ID, PHONE=self.PHONE, DATETIME=now.strftime(dtime_format), prefix='FIELDS')
         self.assertFalse(wbf.changed_fields)
         self.assertEqual(wbf.id.value, self.TEST_ID)
         wbf.id = self.SECOND_TEST_ID
@@ -203,3 +210,10 @@ class BasesAndMixinsTest(TestCase):
         wbf.phone = to_change
         self.assertEqual(wbf.phone.value[0], 'CHANGED')
         self.assertEqual(wbf.changed_fields[1], 'phone')
+        self.assertEqual(wbf.dtime.to_bitrix, {'DATETIME': now.strftime(dtime_format)})
+        self.assertNotEqual(wbf.phone.value, wbf.id.value)
+        self.assertRaises(ValueError, wbf.__setattr__, 'dtime', 'random value')
+        self.assertEqual(len(wbf.changed_fields), 2)
+        wbf.dtime = now
+        self.assertEqual(wbf.changed_fields[2], 'dtime')
+        self.assertEqual(wbf.dtime.value, now)

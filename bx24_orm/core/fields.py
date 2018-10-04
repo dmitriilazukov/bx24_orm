@@ -1,16 +1,10 @@
 # -*- coding: utf-8 -*-
-
-
 from copy import deepcopy
+from datetime import datetime
+from dateutil.parser import parse
 
 
-class AbstractField:
-    pass
-
-
-class BxField(AbstractField):
-    __slots__ = ('__bx_name', '__prefix', '__value')
-
+class BxField(object):
     def __init__(self, bx_name, value=None, prefix=""):
         # type: (str, object, str) -> None
         """
@@ -19,18 +13,18 @@ class BxField(AbstractField):
         :param value: initial value
         :param prefix: prefix before parameters dict, e.g FIELD in ORM module
         """
-        self.__value = value
-        self.__bx_name = str.upper(bx_name)
-        self.__prefix = str.upper(prefix)
+        self._value = value
+        self._bx_name = str.upper(bx_name)
+        self._prefix = str.upper(prefix)
         super(BxField, self).__init__()
 
     @property
     def prefix(self):
-        return self.__prefix
+        return self._prefix
 
     @property
     def bx_name(self):
-        return self.__bx_name
+        return self._bx_name
 
     @property
     def value(self):
@@ -39,10 +33,10 @@ class BxField(AbstractField):
         Returns copy of contained value to prevent untracked changes
         :return: value
         """
-        return deepcopy(self.__value)
+        return deepcopy(self._value)
 
     def __set__(self, instance, value):
-        self.__value = value
+        self._value = value
 
     @staticmethod
     def __format_value(key, value):
@@ -65,6 +59,9 @@ class BxField(AbstractField):
             result.update({key: value})
         return result
 
+    def validate_value(self, value):
+        return True
+
     @property
     def to_bitrix(self):
         # type: () -> dict
@@ -72,9 +69,43 @@ class BxField(AbstractField):
         Converts field into valid parameter or parameters to bitrix
         :return: Dict representing bitrix parameter
         """
-        if self.__prefix:
-            key = '{}[{}]'.format(self.__prefix, self.__bx_name)
+        if self._prefix:
+            key = '{}[{}]'.format(self._prefix, self._bx_name)
         else:
-            key = '{}'.format(self.__bx_name)
-        result = self.__format_value(key, self.value)
-        return result
+            key = '{}'.format(self._bx_name)
+        return self.__format_value(key, self.value)
+
+
+class BxDateTime(BxField):
+
+    def __init__(self, bx_name, value=None, prefix=""):
+        try:
+            if value:
+                value = parse(value)
+        except ValueError as err:
+            raise err
+        super(BxDateTime, self).__init__(bx_name, value, prefix)
+
+    def validate_value(self, value):
+        if isinstance(value, datetime):
+            return True
+        elif type(value) in (unicode, str):
+            try:
+                parse(value)
+                return True
+            except ValueError as err:
+                raise err
+        else:
+            raise ValueError('Datetime or str instance expected. Got {}'.format(type(value)))
+
+    @property
+    def to_bitrix(self):
+        if self._prefix:
+            key = '{}[{}]'.format(self._prefix, self._bx_name)
+        else:
+            key = '{}'.format(self._bx_name)
+        try:
+            v = self._value.strftime('%Y-%m-%dT%H:%M:%S.%f%Z')
+        except ValueError:
+            v = self._value.strftime('%Y-%m-%dT%H:%M:%S.%f')
+        return {key: v}
