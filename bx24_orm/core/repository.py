@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from bx24_orm.core import settings, token_storage
-from bx_interface import (BxQuery, BxBatch, BxBatchCommand, BxQueryBuilder, BxCallableMixin, BxQueryResponse)
+from bx24_orm.core.bx_interface import (BxQuery, BxBatch, BxBatchCommand, BxQueryBuilder, BxCallableMixin, BxQueryResponse)
 from .exceptions.code_exceptions import *
 from .exceptions.bx_exceptions import *
 

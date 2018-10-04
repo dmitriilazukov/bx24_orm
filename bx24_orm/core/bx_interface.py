@@ -252,8 +252,12 @@ class BxBatchCommand(object):
         :return: dict, like { cmd[cmd_name]: url_with_params }
         """
         cmd_name = self.name if self.name else str(uuid.uuid4())[:4]
+        try:
+            urlencode = urllib.urlencode  # python3 compatibility hotfix
+        except AttributeError:
+            urlencode = urllib.parse.urlencode
         return {'cmd[{}]'.format(cmd_name): '{u}?{p}'.format(u=self.query,
-                                                             p=urllib.urlencode(self.__encoded_dict(self.parameters)))}
+                                                             p=urlencode(self.__encoded_dict(self.parameters)))}
 
 
 class BxQuery(BxBatchCommand, BxCallableMixin):

@@ -22,6 +22,13 @@ class DefaultTokenStorage(object):
         storage.close()
         return result
 
+    def get_refresh_token(self, domain):
+        # type: (str) -> str
+        storage = shelve.open(self.bx_settings.TOKEN_STORAGE_FILENAME)
+        result = storage[domain]['refresh_token']
+        storage.close()
+        return result
+
     def refresh_token(self, domain):
         # type: (str) -> str
         url = 'https://{}.bitrix24.ru/oauth/token/'.format(domain)
