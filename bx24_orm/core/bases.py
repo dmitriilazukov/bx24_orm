@@ -99,6 +99,7 @@ class BxEntity(six.with_metaclass(BxEntityMeta)):
             result = self.repository.create(self)
             self.id = result.result
             created = True
+        self.changed_fields = []
         return self.id.value, created
 
     def delete(self):

@@ -254,14 +254,20 @@ class BxEntityTest(TestCase):
         self.assertNotEqual(deal.id(), None)
         new_deal = BaseDeal.get(deal.id)
         self.assertEqual(deal.title(), new_deal.title())
-        self.assertNotEqual(deal.created_at(), new_deal.created_at())
+        self.assertNotEqual(deal.date_create(), new_deal.date_create())
         self.assertEqual(deal.id().__str__(), new_deal.id())
-        print(new_deal.delete())
 
     def testCreateLeadAndDealMixed(self):
         new_title = 'NEW_TEST_LEAD'
         lead = BaseLead(title=new_title)
         lead.save()
+        first_id = lead.id()
+        test_address = 'TEST_ADDRESS'
+        lead.address = test_address
+        self.assertEqual(len(lead.changed_fields), 1)
+        self.assertEqual(lead.changed_fields[0], 'address')
+        lead.save()
+        self.assertEqual(first_id, lead.id())
         created = BaseLead.get(lead.id())
         self.assertEqual(lead.title(), created.title())
         deal = BaseDeal(title=new_title)
