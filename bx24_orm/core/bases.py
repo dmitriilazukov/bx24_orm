@@ -61,13 +61,13 @@ class BxEntity(six.with_metaclass(BxEntityMeta)):
     def __setattr__(self, key, value):
         if key != 'changed_fields' \
                 and 'changed_fields' in self.__dict__ \
-                and key in self.__dict__ \
-                and key not in self.changed_fields:
+                and key in self.__dict__:
             field = getattr(self, key, None)
             if issubclass(type(field), BxField):
                 field.validate_value(value)
-                field.__set__(None, value)
-            self.changed_fields.append(key)
+                field.__set__(None, field.parse_value(value))
+            if key not in self.changed_fields:
+                self.changed_fields.append(key)
         else:
             self.__dict__.update({key: value})
 

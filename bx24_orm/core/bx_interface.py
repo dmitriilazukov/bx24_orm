@@ -4,6 +4,7 @@ import requests
 import time
 import uuid
 from itertools import chain
+from collections import OrderedDict
 
 from six.moves import urllib
 from .exceptions import code_exceptions as ce
@@ -14,7 +15,7 @@ class BxQueryBuilder(object):
 
     def __init__(self):
         self._filter = {}
-        self._select = set()
+        self._select = []
         self._order = {}
         super(BxQueryBuilder, self).__init__()
 
@@ -53,7 +54,10 @@ class BxQueryBuilder(object):
     def select(self, *args):
         for a in args:
             a = self.resolve_field_name(str(a).lower())
-            self._select.update((str(a).upper(),))
+            self._select.append(a.upper())
+            # prevent identical elements in list
+            # OrderedDict is used due python set swaps items
+            self._select = list(OrderedDict.fromkeys(self._select))
         return self
 
     def build(self):

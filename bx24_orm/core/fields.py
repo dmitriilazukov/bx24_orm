@@ -2,6 +2,7 @@
 from copy import deepcopy
 from datetime import datetime
 from dateutil.parser import parse
+import six
 
 
 class BxField(object):
@@ -17,6 +18,9 @@ class BxField(object):
         self._bx_name = bx_name.upper()
         self._prefix = prefix.upper()
         super(BxField, self).__init__()
+
+    def parse_value(self, value):
+        return value
 
     @property
     def prefix(self):
@@ -86,10 +90,16 @@ class BxDateTime(BxField):
             raise err
         super(BxDateTime, self).__init__(bx_name, value, prefix)
 
+    def parse_value(self, value):
+        if type(value) == datetime:
+            return value
+        else:
+            return parse(value)
+
     def validate_value(self, value):
         if isinstance(value, datetime):
             return True
-        elif type(value) in (unicode, str):
+        elif issubclass(type(value), six.string_types):
             try:
                 parse(value)
                 return True

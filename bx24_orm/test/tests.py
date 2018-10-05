@@ -222,6 +222,11 @@ class BasesAndMixinsTest(TestCase):
         self.assertNotEqual(wbf.phone.value, wbf.id.value)
         self.assertRaises(ValueError, wbf.__setattr__, 'dtime', 'random value')
         self.assertEqual(len(wbf.changed_fields), 2)
-        wbf.dtime = now
+        wbf.dtime = now.strftime('%Y-%m-%dT%H:%M:%S.%f')
         self.assertEqual(wbf.changed_fields[2], 'dtime')
         self.assertEqual(wbf.dtime.value, now)
+        self.assertEqual(len(wbf.changed_fields), 3)
+        wbf.dtime = now
+        self.assertEqual(len(wbf.changed_fields), 3)
+        self.assertEqual(wbf.dtime.value, now)
+        self.assertEqual(wbf.dtime.to_bitrix, {'DATETIME': now.strftime('%Y-%m-%dT%H:%M:%S.%f')})
