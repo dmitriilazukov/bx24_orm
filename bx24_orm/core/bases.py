@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import six
+from copy import deepcopy
 
 from .utils import classproperty
 from .fields import BxField
@@ -18,7 +19,8 @@ class BxEntityMeta(type):
         'delete_action': 'delete',
         'list_action': 'list',
         'update_action': 'update',
-        'create_action': 'add'
+        'create_action': 'add',
+        'default_prefix': ''
     }
     repository = None
 
@@ -30,24 +32,26 @@ class BxEntityMeta(type):
         for k in to_pop:
             attrs.pop(k)
         attrs.update({'to_instance_dict': to_pop})
+        instance_bx_meta = deepcopy(mcs._bx_meta)
+        instance_bx_meta.update(attrs.get('_bx_meta', {}))
+        domain = instance_bx_meta['domain']
+        attrs['to_instance_dict'].update({'_bx_meta': instance_bx_meta})
         if '_bx_meta' in attrs:
-            attrs['_bx_meta'].update(mcs._bx_meta)
-        else:
-            attrs.update({'_bx_meta': mcs._bx_meta})
-        mcs._bx_meta = attrs['_bx_meta']
-        domain = mcs._bx_meta['domain']
+            attrs.pop('_bx_meta')
         super_obj = super(BxEntityMeta, mcs).__new__(mcs, name, bases, attrs)
-        super_obj.repository = mcs._bx_meta['repository'](super_obj, domain)
+        super_obj.repository = instance_bx_meta['repository'](super_obj, instance_bx_meta, domain)
         return super_obj
 
 
 class BxEntity(six.with_metaclass(BxEntityMeta)):
     def __init__(self, **kwargs):
         # type: (kwargs) -> None
-        provided_id = kwargs.get('id') or kwargs.get('ID') or None
-        id_field = provided_id if issubclass(type(provided_id), BxField) else BxField('ID',
-                                                                                      value=provided_id,
-                                                                                      prefix="")
+        provided_id = kwargs.get('id') or self.to_instance_dict.get('id') or None
+        if (issubclass(type(provided_id), BxField)):
+            id_field = provided_id
+        else:
+            id_field = BxField('ID', provided_id, '')
+        self._bx_meta = self.to_instance_dict['_bx_meta']
         self.to_instance_dict.update({'id': id_field})
         self.to_changed_fields = []
         for k in self.to_instance_dict:
@@ -61,7 +65,8 @@ class BxEntity(six.with_metaclass(BxEntityMeta)):
                     self.to_changed_fields.append(k)
                 else:
                     value = v.value
-                new_v = val_type(v.bx_name, value, v.prefix)
+                prefix = v.prefix if v.prefix is not None else self._bx_meta['default_prefix']
+                new_v = val_type(v.bx_name, value, prefix)
                 setattr(self, k, new_v)
         self.changed_fields = [] + self.to_changed_fields
 

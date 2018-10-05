@@ -9,7 +9,7 @@ from bx24_orm.core.fields import BxField, BxDateTime
 from bx24_orm.core import settings, token_storage
 from bx24_orm.core.exceptions.code_exceptions import *
 from bx24_orm.core.exceptions.bx_exceptions import *
-from bx24_orm.enitiy.crm import BaseDeal
+from bx24_orm.enitiy.crm import BaseDeal, BaseLead
 
 
 class BxQueryBuilderTest(TestCase):
@@ -201,11 +201,16 @@ class BasesAndMixinsTest(TestCase):
         dtime_format = '%Y-%m-%dT%H:%M:%S.%f'
 
         class WithBxFields(BxEntity):
+            _bx_meta = {
+                'default_prefix': 'FIELDS'
+            }
             id = BxField('ID', prefix='FIELDS')
             phone = BxField('PHONE', prefix='FIELDS')
             dtime = BxDateTime('DATETIME')
 
+        dealInstance = BaseDeal()
         wbf = WithBxFields(ID=self.TEST_ID, PHONE=self.PHONE, DATETIME=now.strftime(dtime_format), prefix='FIELDS')
+        self.assertNotEqual(dealInstance._bx_meta, wbf._bx_meta)
         self.assertFalse(wbf.changed_fields)
         self.assertEqual(wbf.id.value, self.TEST_ID)
         wbf.id = self.SECOND_TEST_ID
@@ -219,7 +224,7 @@ class BasesAndMixinsTest(TestCase):
         wbf.phone = to_change
         self.assertEqual(wbf.phone.value[0], 'CHANGED')
         self.assertEqual(wbf.changed_fields[1], 'phone')
-        self.assertEqual(wbf.dtime.to_bitrix, {'DATETIME': now.strftime(dtime_format)})
+        self.assertEqual(wbf.dtime.to_bitrix, {'FIELDS[DATETIME]': now.strftime(dtime_format)})
         self.assertNotEqual(wbf.phone.value, wbf.id.value)
         self.assertRaises(ValueError, wbf.__setattr__, 'dtime', 'random value')
         self.assertEqual(len(wbf.changed_fields), 2)
@@ -230,7 +235,7 @@ class BasesAndMixinsTest(TestCase):
         wbf.dtime = now
         self.assertEqual(len(wbf.changed_fields), 3)
         self.assertEqual(wbf.dtime.value, now)
-        self.assertEqual(wbf.dtime.to_bitrix, {'DATETIME': now.strftime('%Y-%m-%dT%H:%M:%S.%f')})
+        self.assertEqual(wbf.dtime.to_bitrix, {'FIELDS[DATETIME]': now.strftime('%Y-%m-%dT%H:%M:%S.%f')})
 
 
 class BxEntityTest(TestCase):
@@ -252,3 +257,16 @@ class BxEntityTest(TestCase):
         self.assertNotEqual(deal.created_at(), new_deal.created_at())
         self.assertEqual(deal.id().__str__(), new_deal.id())
         print(new_deal.delete())
+
+    def testCreateLeadAndDealMixed(self):
+        new_title = 'NEW_TEST_LEAD'
+        lead = BaseLead(title=new_title)
+        lead.save()
+        created = BaseLead.get(lead.id())
+        self.assertEqual(lead.title(), created.title())
+        deal = BaseDeal(title=new_title)
+        deal.save()
+        created_deal = BaseDeal.get(deal.id())
+        self.assertEqual(deal.title(), created_deal.title())
+        created.delete()
+        created_deal.delete()

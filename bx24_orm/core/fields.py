@@ -6,8 +6,8 @@ import six
 
 
 class BxField(object):
-    def __init__(self, bx_name, value=None, prefix=""):
-        # type: (str, object, str) -> None
+    def __init__(self, bx_name, value=None, prefix=None):
+        # type: (six.string_types, object, six.string_types) -> None
         """
         Represents bitrix field
         :param bx_name: name on bitrix portal like UF_CRM_XXXXXX
@@ -16,7 +16,7 @@ class BxField(object):
         """
         self._value = value
         self._bx_name = bx_name.upper()
-        self._prefix = prefix.upper()
+        self._prefix = prefix.upper() if issubclass(type(prefix), six.string_types) else None
         super(BxField, self).__init__()
 
     def parse_value(self, value):
@@ -88,7 +88,7 @@ class BxField(object):
 
 class BxDateTime(BxField):
 
-    def __init__(self, bx_name, value=None, prefix=""):
+    def __init__(self, bx_name, value=None, prefix=None):
         try:
             if value:
                 value = parse(value)

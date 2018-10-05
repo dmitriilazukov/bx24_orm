@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from bx24_orm.core import settings, token_storage
-from bx24_orm.core.bx_interface import (BxQuery, BxBatch, BxBatchCommand, BxQueryBuilder, BxCallableMixin, BxQueryResponse)
+from bx24_orm.core.bx_interface import (BxQuery, BxBatch, BxBatchCommand, BxQueryBuilder, BxCallableMixin,
+                                        BxQueryResponse)
 from .exceptions.code_exceptions import *
 from .exceptions.bx_exceptions import *
-
-
 
 
 class BaseBxRepository(object):
@@ -18,17 +17,18 @@ class BaseBxRepository(object):
     }
     actions = REPOSITORY_ACTIONS
 
-    def __init__(self, entity_cls, domain=settings.default_domain, token_storage=token_storage):
+    def __init__(self, entity_cls, entity_meta, domain=settings.default_domain, token_storage=token_storage):
         # type: (BxEntity, str, object) -> None
         self.token_storage = token_storage
         self.domain = domain
         self.entity_cls = entity_cls
-        self.adapter = entity_cls._bx_meta['adapter'](entity_cls)
+        self.entity_meta = entity_meta
+        self.adapter = entity_meta['adapter'](entity_cls)
         super(BaseBxRepository, self).__init__()
 
     def _build_query_name(self, action):
-        entity_name = self.entity_cls._bx_meta['entity']
-        action = self.entity_cls._bx_meta[self.actions[action]]
+        entity_name = self.entity_meta['entity']
+        action = self.entity_meta[self.actions[action]]
         if action:
             action = '.' + action
         return entity_name + action
@@ -139,18 +139,20 @@ class BaseBxRepository(object):
 class BxEntityQuery(BxQueryBuilder, BxCallableMixin):
     def __init__(self,
                  target_entity_cls,
+                 entity_meta,
                  token_storage=token_storage,
                  domain=settings.default_domain,
                  transport=settings.default_transport):
         # type: (BxEntity, object, str, str) -> None
         self.entity_cls = target_entity_cls
         self.token_storage = token_storage
-        self.adapter = target_entity_cls._bx_meta['adapter'](target_entity_cls)
+        self.entity_meta = entity_meta
+        self.adapter = entity_meta['adapter'](target_entity_cls)
         self.domain = domain
         self.transport = transport
-        action = '.' + self.entity_cls._bx_meta['list_action'] if self.entity_cls._bx_meta.get('list_action') else ''
+        action = '.' + entity_meta['list_action'] if entity_meta.get('list_action') else ''
         self.url = 'https://{d}.bitrix24.ru/rest/{e}{a}.{t}'.format(d=domain,
-                                                                    e=target_entity_cls._bx_meta['entity'],
+                                                                    e=entity_meta['entity'],
                                                                     a=action,
                                                                     t=transport)
         super(BxEntityQuery, self).__init__()
