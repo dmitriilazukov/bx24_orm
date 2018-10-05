@@ -9,6 +9,7 @@ from bx24_orm.core.fields import BxField, BxDateTime
 from bx24_orm.core import settings, token_storage
 from bx24_orm.core.exceptions.code_exceptions import *
 from bx24_orm.core.exceptions.bx_exceptions import *
+from bx24_orm.enitiy.crm import BaseDeal
 
 
 class BxQueryBuilderTest(TestCase):
@@ -230,3 +231,24 @@ class BasesAndMixinsTest(TestCase):
         self.assertEqual(len(wbf.changed_fields), 3)
         self.assertEqual(wbf.dtime.value, now)
         self.assertEqual(wbf.dtime.to_bitrix, {'DATETIME': now.strftime('%Y-%m-%dT%H:%M:%S.%f')})
+
+
+class BxEntityTest(TestCase):
+    def setUp(self):
+        self.TEST_DEAL = 1
+
+    def testDealFetch(self):
+        deal = BaseDeal.get(self.TEST_DEAL)
+        self.assertEqual(deal.id.value, self.TEST_DEAL.__str__())
+        self.assertEqual(deal.title.value, 'TEST_DEAL')
+
+    def testDealCreate(self):
+        new_title = 'NEW_TEST_DEAL'
+        deal = BaseDeal(title=new_title)
+        deal.save()
+        self.assertNotEqual(deal.id(), None)
+        new_deal = BaseDeal.get(deal.id)
+        self.assertEqual(deal.title(), new_deal.title())
+        self.assertNotEqual(deal.created_at(), new_deal.created_at())
+        self.assertEqual(deal.id().__str__(), new_deal.id())
+        print(new_deal.delete())

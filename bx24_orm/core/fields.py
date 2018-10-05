@@ -66,6 +66,12 @@ class BxField(object):
     def validate_value(self, value):
         return True
 
+    def __call__(self, *args, **kwargs):
+        return deepcopy(self._value)
+
+    def __str__(self):
+        return self._value.__str__()
+
     @property
     def to_bitrix(self):
         # type: () -> dict
@@ -114,8 +120,11 @@ class BxDateTime(BxField):
             key = '{}[{}]'.format(self._prefix, self._bx_name)
         else:
             key = '{}'.format(self._bx_name)
-        try:
-            v = self._value.strftime('%Y-%m-%dT%H:%M:%S.%f%Z')
-        except ValueError:
-            v = self._value.strftime('%Y-%m-%dT%H:%M:%S.%f')
+        if self._value:
+            try:
+                v = self._value.strftime('%Y-%m-%dT%H:%M:%S.%f%Z')
+            except ValueError:
+                v = self._value.strftime('%Y-%m-%dT%H:%M:%S.%f')
+        else:
+            v = self._value
         return {key: v}

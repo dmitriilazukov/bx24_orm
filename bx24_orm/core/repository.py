@@ -4,17 +4,18 @@ from bx24_orm.core.bx_interface import (BxQuery, BxBatch, BxBatchCommand, BxQuer
 from .exceptions.code_exceptions import *
 from .exceptions.bx_exceptions import *
 
-GET, UPDATE, LIST, CREATE, DELETE = 'GET', 'UPDATE', 'LIST', 'CREATE', 'DELETE'
-REPOSITORY_ACTIONS = {
-    GET: 'get_action',
-    UPDATE: 'update_action',
-    CREATE: 'create_action',
-    LIST: 'list_action',
-    DELETE: 'delete_action'
-}
+
 
 
 class BaseBxRepository(object):
+    GET, UPDATE, LIST, CREATE, DELETE = 'GET', 'UPDATE', 'LIST', 'CREATE', 'DELETE'
+    REPOSITORY_ACTIONS = {
+        GET: 'get_action',
+        UPDATE: 'update_action',
+        CREATE: 'create_action',
+        LIST: 'list_action',
+        DELETE: 'delete_action'
+    }
     actions = REPOSITORY_ACTIONS
 
     def __init__(self, entity_cls, domain=settings.default_domain, token_storage=token_storage):

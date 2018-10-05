@@ -49,14 +49,21 @@ class BxEntity(six.with_metaclass(BxEntityMeta)):
                                                                                       value=provided_id,
                                                                                       prefix="")
         self.to_instance_dict.update({'id': id_field})
+        self.to_changed_fields = []
         for k in self.to_instance_dict:
             v = self.to_instance_dict[k]
             val_type = type(v)
             if issubclass(val_type, BxField):
-                value = kwargs[v.bx_name] if v.bx_name in kwargs else v.value
+                if v.bx_name in kwargs:
+                    value = kwargs[v.bx_name]
+                elif k in kwargs:
+                    value = kwargs[k]
+                    self.to_changed_fields.append(k)
+                else:
+                    value = v.value
                 new_v = val_type(v.bx_name, value, v.prefix)
                 setattr(self, k, new_v)
-        self.changed_fields = []
+        self.changed_fields = [] + self.to_changed_fields
 
     def __setattr__(self, key, value):
         if key != 'changed_fields' \
@@ -106,12 +113,12 @@ class BxEntity(six.with_metaclass(BxEntityMeta)):
                 result.update(entity_id.to_bitrix)
         for f in self.changed_fields:
             field = getattr(self, f)
-            if issubclass(field, BxField):
+            if issubclass(type(field), BxField):
                 result.update(field.to_bitrix)
         else:
             for f in self.__dict__:
                 field = getattr(self, f)
-                if issubclass(field, BxField):
+                if issubclass(type(field), BxField):
                     result.update(field.to_bitrix)
         return result
 
