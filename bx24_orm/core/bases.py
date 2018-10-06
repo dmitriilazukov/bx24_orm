@@ -5,7 +5,7 @@ from copy import deepcopy
 from .utils import classproperty
 from .fields import BxField
 from . import settings as bx_settings, token_storage as default_storage
-from .repository import BaseBxRepository
+from .repository import BaseBxRepository, BxEntityQuery
 from .adapter import BaseBxAdapter
 
 
@@ -107,6 +107,7 @@ class BxEntity(six.with_metaclass(BxEntityMeta)):
 
     @classproperty
     def objects(cls):
+        # type: () -> BxEntityQuery
         return cls.repository.objects
 
     def get_updates(self, force_all_fields=False):

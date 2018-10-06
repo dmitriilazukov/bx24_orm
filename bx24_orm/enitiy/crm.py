@@ -42,7 +42,17 @@ class BaseLead(BxEntity):
     im = BxField('IM')
     originator_id = BxField('ORIGINATOR_ID')
     origin_id = BxField('ORIGIN_ID')
-
+    honorific = BxField('HONORIFIC')
+    is_return_customer = BxField('IS_RETURN_CUSTOMER')
+    has_phone = BxField('HAS_PHONE')
+    has_email = BxField('HAS_EMAIL')
+    has_imol = BxField('HAS_IMOL')
+    status_semantic_id = BxField('STATUS_SEMANTIC_ID')
+    utm_source = BxField('UTM_SOURCE')
+    utm_medium = BxField('UTM_MEDIUM')
+    utm_campaign = BxField('UTM_CAMPAIGN')
+    utm_content = BxField('UTM_CONTENT')
+    utm_term = BxField('UTM_TERM')
     _bx_meta = {
         'entity': 'crm.lead',
         'default_prefix': 'FIELDS'
@@ -72,7 +82,22 @@ class BaseDeal(BxEntity):
     originator_id = BxField('ORIGINATOR_ID')
     origin_id = BxField('ORIGIN_ID')
     category_id = BxField('CATEGORY_ID')
-
+    currency_id = BxField('CURRENCY_ID')
+    tax_value = BxField('TAX_VALUE')
+    quote_id = BxField('QUOTE_ID')
+    location_id = BxField('LOCATION_ID')
+    stage_semantic_id = BxField('STAGE_SEMANTIC_ID')
+    is_new = BxField('IS_NEW')
+    is_recurring = BxField('IS_RECURRING')
+    is_return_customer = BxField('IS_RETURN_CUSTOMER')
+    is_repeated_approach = BxField('IS_REPEATED_APPROACH')
+    source_id = BxField('SOURCE_ID')
+    source_description = BxField('SOURCE_DESCRIPTION')
+    utm_source = BxField('UTM_SOURCE')
+    utm_medium = BxField('UTM_MEDIUM')
+    utm_campaign = BxField('UTM_CAMPAIGN')
+    utm_content = BxField('UTM_CONTENT')
+    utm_term = BxField('UTM_TERM')
     _bx_meta = {
         'entity': 'crm.deal',
         'default_prefix': 'FIELDS'
@@ -118,6 +143,17 @@ class BaseCompany(BxEntity):
     email = BxField('EMAIL')
     web = BxField('WEB')
     im = BxField('IM')
+    has_phone = BxField('HAS_PHONE')
+    has_email = BxField('HAS_EMAIL')
+    has_imol = BxField('HAS_IMOL')
+    employees = BxField('EMPLOYEES')
+    is_my_company = BxField('IS_MY_COMPANY')
+    origin_version = BxField('ORIGIN_VERSION')
+    utm_source = BxField('UTM_SOURCE')
+    utm_medium = BxField('UTM_MEDIUM')
+    utm_campaign = BxField('UTM_CAMPAIGN')
+    utm_content = BxField('UTM_CONTENT')
+    utm_term = BxField('UTM_TERM')
 
     _bx_meta = {
         'entity': 'crm.company',
@@ -159,6 +195,17 @@ class BaseContact(BxEntity):
     im = BxField('IM')
     originator_id = BxField('ORIGINATOR_ID')
     origin_id = BxField('ORIGIN_ID')
+    honorific = BxField('HONORIFIC')
+    has_phone = BxField('HAS_PHONE')
+    has_email = BxField('HAS_EMAIL')
+    has_imol = BxField('HAS_IMOL')
+    origin_version = BxField('ORIGIN_VERSION')
+    face_id = BxField('FACE_ID')
+    utm_source = BxField('UTM_SOURCE')
+    utm_medium = BxField('UTM_MEDIUM')
+    utm_campaign = BxField('UTM_CAMPAIGN')
+    utm_content = BxField('UTM_CONTENT')
+    utm_term = BxField('UTM_TERM')
 
     _bx_meta = {
         'entity': 'crm.contact',

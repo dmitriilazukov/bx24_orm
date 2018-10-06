@@ -106,7 +106,8 @@ class BaseBxRepository(object):
 
     @property
     def objects(self):
-        return BxEntityQuery(self.entity_cls, token_storage=self.token_storage, domain=self.domain)
+        # type: () -> BxEntityQuery
+        return BxEntityQuery(self.entity_cls, self.entity_meta, token_storage=self.token_storage, domain=self.domain)
 
     @staticmethod
     def _validate_before_many(target_list, target_type):

@@ -246,19 +246,31 @@ class BxEntityTest(TestCase):
         deal = BaseDeal.get(self.TEST_DEAL)
         self.assertEqual(deal.id.value, self.TEST_DEAL.__str__())
         self.assertEqual(deal.title.value, 'TEST_DEAL')
+        deal.utm_content = 'TEST_UTM_CONTENT'
+        self.assertEqual(len(deal.changed_fields), 1)
+        deal.save()
 
     def testDealCreate(self):
         new_title = 'NEW_TEST_DEAL'
-        deal = BaseDeal(title=new_title)
+        utm_content = 'TEST_UTM_CONTENT'
+        current_deals = BaseDeal.objects.all()
+        current_length = len(current_deals)
+        deal = BaseDeal(title=new_title, utm_content=utm_content)
         deal.save()
         self.assertNotEqual(deal.id(), None)
+        self.assertEqual(deal.utm_content(), utm_content)
         new_deal = BaseDeal.get(deal.id)
         self.assertEqual(deal.title(), new_deal.title())
         self.assertNotEqual(deal.date_create(), new_deal.date_create())
         self.assertEqual(deal.id().__str__(), new_deal.id())
+        deal.delete()
+        current_deals = BaseDeal.objects.all()
+        self.assertEqual(current_length, len(current_deals))
 
     def testCreateLeadAndDealMixed(self):
         new_title = 'NEW_TEST_LEAD'
+        current_leads = BaseLead.objects.all()
+        current_len = len(current_leads)
         lead = BaseLead(title=new_title)
         lead.save()
         first_id = lead.id()
@@ -276,3 +288,5 @@ class BxEntityTest(TestCase):
         self.assertEqual(deal.title(), created_deal.title())
         created.delete()
         created_deal.delete()
+        current_leads = BaseLead.objects.all()
+        self.assertEqual(current_len, len(current_leads))
