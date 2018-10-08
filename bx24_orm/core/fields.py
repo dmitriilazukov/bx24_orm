@@ -90,13 +90,15 @@ class BxDateTime(BxField):
 
     def __init__(self, bx_name, value=None, prefix=None):
         try:
-            if value:
-                value = parse(value)
+            self.validate_value(value)
+            value = self.parse_value(value)
         except ValueError as err:
             raise err
         super(BxDateTime, self).__init__(bx_name, value, prefix)
 
     def parse_value(self, value):
+        if value is None:
+            return None
         if type(value) == datetime:
             return value
         else:
@@ -105,14 +107,15 @@ class BxDateTime(BxField):
     def validate_value(self, value):
         if isinstance(value, datetime):
             return True
-        elif issubclass(type(value), six.string_types):
+        if value is None:
+            return None
+        if issubclass(type(value), six.string_types):
             try:
                 parse(value)
                 return True
             except ValueError as err:
                 raise err
-        else:
-            raise ValueError('Datetime or str instance expected. Got {}'.format(type(value)))
+        raise ValueError('Datetime or str instance expected. Got {}'.format(type(value)))
 
     @property
     def to_bitrix(self):
@@ -127,4 +130,39 @@ class BxDateTime(BxField):
                 v = self._value.strftime('%Y-%m-%dT%H:%M:%S.%f')
         else:
             v = self._value
+        return {key: v}
+
+
+class BxBoolean(BxField):
+    def __init__(self, bx_name, value=None, prefix=None):
+        if self.validate_value(value):
+            value = self.parse_value(value)
+            super(BxBoolean, self).__init__(bx_name, value, prefix)
+        else:
+            raise RuntimeError('Failed to initialize BxBoolean with value = {}'.format(value))
+
+    def parse_value(self, value):
+        if value is None:
+            return False
+        if issubclass(type(value), six.string_types) and value.upper().strip() in ('Y', 'N'):
+            return True if value.upper().strip() is 'Y' else False
+        if type(value) is bool:
+            return value
+        raise ValueError('Expected Y/N or bool or None. Got {}'.format(type(value)))
+
+    def validate_value(self, value):
+        if value is None:
+            return True
+        if issubclass(type(value), six.string_types) and value.upper().strip() in ('Y', 'N'):
+            return True if value.upper().strip() is 'Y' else False
+        if type(value) is bool:
+            return value
+        raise ValueError('Expected Y/N or bool or None. Got {}'.format(type(value)))
+
+    def to_bitrix(self):
+        if self._prefix:
+            key = '{}[{}]'.format(self._prefix, self._bx_name)
+        else:
+            key = '{}'.format(self._bx_name)
+        v = 'Y' if self._value else 'N'
         return {key: v}
