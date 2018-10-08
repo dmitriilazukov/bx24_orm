@@ -97,7 +97,7 @@ class BxDateTime(BxField):
         super(BxDateTime, self).__init__(bx_name, value, prefix)
 
     def parse_value(self, value):
-        if value is None:
+        if not value :
             return None
         if type(value) == datetime:
             return value
@@ -152,7 +152,7 @@ class BxBoolean(BxField):
 
     def validate_value(self, value):
         if value is None:
-            return True
+            return False
         if issubclass(type(value), six.string_types) and value.upper().strip() in ('Y', 'N'):
             return True if value.upper().strip() is 'Y' else False
         if type(value) is bool:
