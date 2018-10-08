@@ -9,11 +9,12 @@ from bx24_orm.core.fields import BxField, BxDateTime
 from bx24_orm.core import settings, token_storage
 from bx24_orm.core.exceptions.code_exceptions import *
 from bx24_orm.core.exceptions.bx_exceptions import *
-from bx24_orm.enitiy.crm import BxDeal, BxLead, BxCompany
+from bx24_orm.enitiy.crm import BxDeal, BxLead, BxCompany, BxInvoice
 
 GLOBAL_TEST_LEAD = settings.TEST_LEAD
 GLOBAL_TEST_DEAL = settings.TEST_DEAL
 GLOBAL_TEST_COMPANY = settings.TEST_COMPANY
+GLOBAL_TEST_INVOICE = settings.TEST_INVOICE
 
 
 class BxQueryBuilderTest(TestCase):
@@ -247,16 +248,16 @@ class BaseEntityCRUDTestMixin(object):
     def testCreate(self):
         before_create = len(self.entity_cls.objects.all())
         initial_entity = self.entity_cls.get(self.entity_id)
-        test_name, test_utm_term = 'NEW_TEST_{}'.format(str(self.entity_cls.__name__)), 'NEW_UTM_TERM'
-        entity = self.entity_cls(title=test_name, utm_term=test_utm_term)
+        entity = self.entity_cls(**self.entity_kwargs)
         entity.save()
         initial_entity = self.entity_cls.get(self.entity_id)
         self.assertNotEqual(entity.title(), initial_entity.title())
         created_entity = self.entity_cls.get(entity.id())
         BaseEntityCRUDTestMixin.created_entity_id = entity.id()
         self.assertNotEqual(created_entity.id(), initial_entity.id())
-        self.assertEqual(created_entity.title(), test_name)
-        self.assertEqual(created_entity.utm_term(), test_utm_term)
+        for k in self.entity_kwargs:
+            v = self.entity_kwargs[k]
+            self.assertEqual(v, getattr(created_entity, k)())
         after_create = len(self.entity_cls.objects.all())
         self.assertNotEqual(before_create, after_create)
         self.assertEqual(after_create, before_create + 1)
@@ -274,6 +275,7 @@ class BxLeadTests(TestCase, BaseEntityCRUDTestMixin):
     def setUp(self):
         self.entity_id = GLOBAL_TEST_LEAD
         self.entity_cls = BxLead
+        self.entity_kwargs = {'title': 'NEW_TEST_LEAD', 'utm_term': 'NEW_UTM_TERM'}
 
     def testCreate(self):
         super(BxLeadTests, self).testCreate()
@@ -286,6 +288,7 @@ class BxDealTests(TestCase, BaseEntityCRUDTestMixin):
     def setUp(self):
         self.entity_id = GLOBAL_TEST_DEAL
         self.entity_cls = BxDeal
+        self.entity_kwargs = {'title': 'NEW_TEST_DEAL', 'utm_term': 'NEW_UTM_TERM'}
 
     def testCreate(self):
         super(BxDealTests, self).testCreate()
@@ -298,9 +301,23 @@ class BxCompanyTests(TestCase, BaseEntityCRUDTestMixin):
     def setUp(self):
         self.entity_id = GLOBAL_TEST_COMPANY
         self.entity_cls = BxCompany
+        self.entity_kwargs = {'title': 'NEW_TEST_COMPANY', 'utm_term': 'NEW_UTM_TERM'}
 
     def testCreate(self):
         super(BxCompanyTests, self).testCreate()
 
     def testDelete(self):
         super(BxCompanyTests, self).testDelete()
+
+
+class BxInvoiceTests(TestCase, BaseEntityCRUDTestMixin):
+    def setUp(self):
+        self.entity_id = GLOBAL_TEST_INVOICE
+        self.entity_cls = BxInvoice
+        self.entity_kwargs = {'order_topic': 'NEW_TEST_INVOICE'}
+
+    def testCreate(self):
+        super(BxInvoiceTests, self).testCreate()
+
+    def testDelete(self):
+        super(BxInvoiceTests, self).testDelete()

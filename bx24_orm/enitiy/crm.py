@@ -570,6 +570,8 @@ class BxInvoice(BxEntity):
     deal_id = BxField('UF_DEAL_ID')
     quote_id = BxField('UF_QUOTE_ID')
     user_description = BxField('USER_DESCRIPTION')
+    invoice_properties = BxField('INVOICE_PROPERTIES')
+    product_rows = BxField('PRODUCT_ROWS')
 
     _bx_meta = {
         'entity': 'crm.invoice',
