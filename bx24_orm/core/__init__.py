@@ -1,7 +1,7 @@
 import os
 from importlib import import_module
 
-from bx24_orm.core.settings import Bx24Settings
+from bx24_orm.core.settings import Bx24Settings, DefaultTokenStorage
 
 BX_SETTINGS_MODULE = 'BX24_SETTINGS_MODULE'
 try:

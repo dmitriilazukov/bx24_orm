@@ -7,7 +7,7 @@ class BaseBxAdapter(object):
     def from_bitrix(self, response):
         # type: (BxQueryResponse) -> BxEntity or list
         if response.result:
-            if response.total > 1:
+            if type(response.result) is list:
                 return [self.entity_cls(**r) for r in response.result]
             else:
                 return self.entity_cls(**response.result)

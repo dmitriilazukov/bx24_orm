@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from bx24_orm.core import settings, token_storage
+from bx24_orm.core import settings, token_storage, DefaultTokenStorage
 from bx24_orm.core.bx_interface import (BxQuery, BxBatch, BxBatchCommand, BxQueryBuilder, BxCallableMixin,
                                         BxQueryResponse)
 from .exceptions.code_exceptions import *
@@ -18,7 +18,7 @@ class BaseBxRepository(object):
     actions = REPOSITORY_ACTIONS
 
     def __init__(self, entity_cls, entity_meta, domain=settings.default_domain, token_storage=token_storage):
-        # type: (BxEntity, str, object) -> None
+        # type: (BxEntity,dict, str, DefaultTokenStorage) -> None
         self.token_storage = token_storage
         self.domain = domain
         self.entity_cls = entity_cls
