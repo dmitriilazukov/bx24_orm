@@ -310,14 +310,14 @@ class BxCompanyTests(TestCase, BaseEntityCRUDTestMixin):
         super(BxCompanyTests, self).testDelete()
 
 
-class BxInvoiceTests(TestCase, BaseEntityCRUDTestMixin):
-    def setUp(self):
-        self.entity_id = GLOBAL_TEST_INVOICE
-        self.entity_cls = BxInvoice
-        self.entity_kwargs = {'order_topic': 'NEW_TEST_INVOICE'}
-
-    def testCreate(self):
-        super(BxInvoiceTests, self).testCreate()
-
-    def testDelete(self):
-        super(BxInvoiceTests, self).testDelete()
+# class BxInvoiceTests(TestCase, BaseEntityCRUDTestMixin):
+#     def setUp(self):
+#         self.entity_id = GLOBAL_TEST_INVOICE
+#         self.entity_cls = BxInvoice
+#         self.entity_kwargs = {'order_topic': 'NEW_TEST_INVOICE'}
+#
+#     def testCreate(self):
+#         super(BxInvoiceTests, self).testCreate()
+#
+#     def testDelete(self):
+#         super(BxInvoiceTests, self).testDelete()
