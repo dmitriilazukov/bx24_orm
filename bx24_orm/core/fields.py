@@ -97,7 +97,7 @@ class BxDateTime(BxField):
         super(BxDateTime, self).__init__(bx_name, value, prefix)
 
     def parse_value(self, value):
-        if not value :
+        if not value:
             return None
         if type(value) == datetime:
             return value
@@ -129,7 +129,7 @@ class BxDateTime(BxField):
             except ValueError:
                 v = self._value.strftime('%Y-%m-%dT%H:%M:%S.%f')
         else:
-            v = self._value
+            v = ''
         return {key: v}
 
 
