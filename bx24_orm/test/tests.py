@@ -321,3 +321,19 @@ class BxCompanyTests(TestCase, BaseEntityCRUDTestMixin):
 #
 #     def testDelete(self):
 #         super(BxInvoiceTests, self).testDelete()
+
+
+class DealCompanyLeadCombinationTest(TestCase):
+    def setUp(self):
+        self.lead_id = GLOBAL_TEST_LEAD
+        self.deal_id = GLOBAL_TEST_DEAL
+        self.company_id = GLOBAL_TEST_COMPANY
+
+    def testIntegration(self):
+        lead = BxLead.get(self.lead_id)
+        deal = BxDeal.get(self.deal_id)
+        company = BxCompany.get(self.company_id)
+        self.assertEqual(company.lead_id(), lead.id())
+        self.assertEqual(deal.lead_id(), lead.id())
+        self.assertEqual(deal.company_id(), company.id())
+        self.assertEqual(lead.company_id(), company.id())
