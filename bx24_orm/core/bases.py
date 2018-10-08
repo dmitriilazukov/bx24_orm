@@ -46,7 +46,7 @@ class BxEntityMeta(type):
 class BxEntity(six.with_metaclass(BxEntityMeta)):
     def __init__(self, **kwargs):
         # type: (kwargs) -> None
-        provided_id = kwargs.get('id') or self.to_instance_dict.get('id') or None
+        provided_id = kwargs.get('ID') or None
         if (issubclass(type(provided_id), BxField)):
             id_field = provided_id
         else:

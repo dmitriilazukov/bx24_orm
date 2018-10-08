@@ -110,11 +110,14 @@ class BxDateTime(BxField):
         if value is None:
             return None
         if issubclass(type(value), six.string_types):
-            try:
-                parse(value)
-                return True
-            except ValueError as err:
-                raise err
+            if value.strip() == '':
+                return None
+            else:
+                try:
+                    parse(value)
+                    return True
+                except ValueError as err:
+                    raise err
         raise ValueError('Datetime or str instance expected. Got {}'.format(type(value)))
 
     @property
@@ -152,13 +155,14 @@ class BxBoolean(BxField):
 
     def validate_value(self, value):
         if value is None:
-            return False
+            return True
         if issubclass(type(value), six.string_types) and value.upper().strip() in ('Y', 'N'):
-            return True if value.upper().strip() is 'Y' else False
+            return True
         if type(value) is bool:
-            return value
+            return True
         raise ValueError('Expected Y/N or bool or None. Got {}'.format(type(value)))
 
+    @property
     def to_bitrix(self):
         if self._prefix:
             key = '{}[{}]'.format(self._prefix, self._bx_name)

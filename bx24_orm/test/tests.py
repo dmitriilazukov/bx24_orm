@@ -9,7 +9,11 @@ from bx24_orm.core.fields import BxField, BxDateTime
 from bx24_orm.core import settings, token_storage
 from bx24_orm.core.exceptions.code_exceptions import *
 from bx24_orm.core.exceptions.bx_exceptions import *
-from bx24_orm.enitiy.crm import BxDeal, BxLead
+from bx24_orm.enitiy.crm import BxDeal, BxLead, BxCompany
+
+GLOBAL_TEST_LEAD = settings.TEST_LEAD
+GLOBAL_TEST_DEAL = settings.TEST_DEAL
+GLOBAL_TEST_COMPANY = settings.TEST_COMPANY
 
 
 class BxQueryBuilderTest(TestCase):
@@ -55,9 +59,9 @@ class BxBatchTest(TestCase):
     def setUp(self):
         self.token = token_storage.get_token(settings.default_domain)
         self.domain = settings.default_domain
-        self.TEST_LEAD = 1
-        self.TEST_DEAL = 1
-        self.TEST_COMPANY = 1
+        self.TEST_LEAD = GLOBAL_TEST_LEAD
+        self.TEST_DEAL = GLOBAL_TEST_DEAL
+        self.TEST_COMPANY = GLOBAL_TEST_COMPANY
         self.test_queries = [('crm.lead.get', {'ID': self.TEST_LEAD}, 'raw_lead'),
                              ('crm.deal.get', {'ID': self.TEST_DEAL}, 'raw_deal'),
                              ('crm.company.get', {'ID': self.TEST_COMPANY}, 'raw_company')]
@@ -134,7 +138,7 @@ class BxBatchTest(TestCase):
 
 class BxQueryTest(TestCase):
     def setUp(self):
-        self.TEST_LEAD_ID = '1'
+        self.TEST_LEAD_ID = GLOBAL_TEST_LEAD
         self.TEST_LEAD_QUERY = 'crm.lead.get'
         self.domain = settings.default_domain
         self.token = token_storage.get_token(settings.default_domain)
@@ -163,7 +167,7 @@ class BxQueryTest(TestCase):
         params = {'ID': self.TEST_LEAD_ID, 'auth': self.token + 'INVALID_TOKEN'}
         query = BxQuery(self.TEST_LEAD_QUERY, params, self.domain)
         result = query.safe_call()
-        self.assertEqual(result.result, None)
+        self.assertEqual(result.result, {})
         self.assertEqual(result.result_next, 0)
         self.assertEqual(result.total, 0)
         self.assertTrue(result.error['error'])
@@ -238,55 +242,65 @@ class BasesAndMixinsTest(TestCase):
         self.assertEqual(wbf.dtime.to_bitrix, {'FIELDS[DATETIME]': now.strftime('%Y-%m-%dT%H:%M:%S.%f')})
 
 
-class BxEntityTest(TestCase):
+class BaseEntityCRUDTestMixin(object):
+
+    def testCreate(self):
+        before_create = len(self.entity_cls.objects.all())
+        initial_entity = self.entity_cls.get(self.entity_id)
+        test_name, test_utm_term = 'NEW_TEST_{}'.format(str(self.entity_cls.__name__)), 'NEW_UTM_TERM'
+        entity = self.entity_cls(title=test_name, utm_term=test_utm_term)
+        entity.save()
+        initial_entity = self.entity_cls.get(self.entity_id)
+        self.assertNotEqual(entity.title(), initial_entity.title())
+        created_entity = self.entity_cls.get(entity.id())
+        BaseEntityCRUDTestMixin.created_entity_id = entity.id()
+        self.assertNotEqual(created_entity.id(), initial_entity.id())
+        self.assertEqual(created_entity.title(), test_name)
+        self.assertEqual(created_entity.utm_term(), test_utm_term)
+        after_create = len(self.entity_cls.objects.all())
+        self.assertNotEqual(before_create, after_create)
+        self.assertEqual(after_create, before_create + 1)
+
+    def testDelete(self):
+        before_delete = len(self.entity_cls.objects.all())
+        created_entity = self.entity_cls.get(BaseEntityCRUDTestMixin.created_entity_id)
+        created_entity.delete()
+        after_delete = len(self.entity_cls.objects.all())
+        self.assertNotEqual(before_delete, after_delete)
+        self.assertEqual(before_delete, after_delete + 1)
+
+
+class BxLeadTests(TestCase, BaseEntityCRUDTestMixin):
     def setUp(self):
-        self.TEST_DEAL = 1
+        self.entity_id = GLOBAL_TEST_LEAD
+        self.entity_cls = BxLead
 
-    def testDealFetch(self):
-        deal = BxDeal.get(self.TEST_DEAL)
-        self.assertEqual(deal.id.value, self.TEST_DEAL.__str__())
-        self.assertEqual(deal.title.value, 'TEST_DEAL')
-        deal.utm_content = 'TEST_UTM_CONTENT'
-        self.assertEqual(len(deal.changed_fields), 1)
-        deal.save()
+    def testCreate(self):
+        super(BxLeadTests, self).testCreate()
 
-    def testDealCreate(self):
-        new_title = 'NEW_TEST_DEAL'
-        utm_content = 'TEST_UTM_CONTENT'
-        current_deals = BxDeal.objects.all()
-        current_length = len(current_deals)
-        deal = BxDeal(title=new_title, utm_content=utm_content)
-        deal.save()
-        self.assertNotEqual(deal.id(), None)
-        self.assertEqual(deal.utm_content(), utm_content)
-        new_deal = BxDeal.get(deal.id)
-        self.assertEqual(deal.title(), new_deal.title())
-        self.assertNotEqual(deal.date_create(), new_deal.date_create())
-        self.assertEqual(deal.id().__str__(), new_deal.id())
-        deal.delete()
-        current_deals = BxDeal.objects.all()
-        self.assertEqual(current_length, len(current_deals))
+    def testDelete(self):
+        super(BxLeadTests, self).testDelete()
 
-    def testCreateLeadAndDealMixed(self):
-        new_title = 'NEW_TEST_LEAD'
-        current_leads = BxLead.objects.all()
-        current_len = len(current_leads)
-        lead = BxLead(title=new_title)
-        lead.save()
-        first_id = lead.id()
-        test_address = 'TEST_ADDRESS'
-        lead.address = test_address
-        self.assertEqual(len(lead.changed_fields), 1)
-        self.assertEqual(lead.changed_fields[0], 'address')
-        lead.save()
-        self.assertEqual(first_id, lead.id())
-        created = BxLead.get(lead.id())
-        self.assertEqual(lead.title(), created.title())
-        deal = BxDeal(title=new_title)
-        deal.save()
-        created_deal = BxDeal.get(deal.id())
-        self.assertEqual(deal.title(), created_deal.title())
-        created.delete()
-        created_deal.delete()
-        current_leads = BxLead.objects.all()
-        self.assertEqual(current_len, len(current_leads))
+
+class BxDealTests(TestCase, BaseEntityCRUDTestMixin):
+    def setUp(self):
+        self.entity_id = GLOBAL_TEST_DEAL
+        self.entity_cls = BxDeal
+
+    def testCreate(self):
+        super(BxDealTests, self).testCreate()
+
+    def testDelete(self):
+        super(BxDealTests, self).testDelete()
+
+
+class BxCompanyTests(TestCase, BaseEntityCRUDTestMixin):
+    def setUp(self):
+        self.entity_id = GLOBAL_TEST_COMPANY
+        self.entity_cls = BxCompany
+
+    def testCreate(self):
+        super(BxCompanyTests, self).testCreate()
+
+    def testDelete(self):
+        super(BxCompanyTests, self).testDelete()

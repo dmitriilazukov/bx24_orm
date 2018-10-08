@@ -101,7 +101,7 @@ class BxQueryResponse(BxResponse):
 
     def __parse_raw_result(self, raw_result):
         # type: (dict) -> None
-        self.result = raw_result.get('result')
+        self.result = raw_result.get('result', {})
         self.error = raw_result.get('error')
         self.result_next = raw_result.get('next') or 0
         self.total = raw_result.get('total') or 1 if self.result else 0
