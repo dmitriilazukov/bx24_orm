@@ -273,7 +273,7 @@ class BxMeasure(BxEntity):
     }
 
 
-class Catalog(BxEntity):
+class BxCatalog(BxEntity):
     originator_id = BxField('ORIGINATOR_ID')
     origin_id = BxField('ORIGIN_ID')
     name = BxField('NAME')
