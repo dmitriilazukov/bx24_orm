@@ -245,7 +245,8 @@ class BasesAndMixinsTest(TestCase):
 
 class BaseEntityCRUDTestMixin(object):
 
-    def testCreate(self):
+    def testCreateAndUpdate(self):
+        import random, string
         before_create = len(self.entity_cls.objects.all())
         initial_entity = self.entity_cls.get(self.entity_id)
         entity = self.entity_cls(**self.entity_kwargs)
@@ -261,6 +262,14 @@ class BaseEntityCRUDTestMixin(object):
         after_create = len(self.entity_cls.objects.all())
         self.assertNotEqual(before_create, after_create)
         self.assertEqual(after_create, before_create + 1)
+        created_entity = self.entity_cls.get(BaseEntityCRUDTestMixin.created_entity_id)
+        first_kwarg = next(iter(self.entity_kwargs))
+        random_line = ''.join(random.choice(string.ascii_lowercase) for _ in range(10))
+        setattr(created_entity, first_kwarg, random_line)
+        created_entity.save()
+        test_created_entity = self.entity_cls.get(BaseEntityCRUDTestMixin.created_entity_id)
+        self.assertEqual(test_created_entity.id(), created_entity.id())
+        self.assertEqual(getattr(test_created_entity, first_kwarg)(), random_line)
 
     def testDelete(self):
         before_delete = len(self.entity_cls.objects.all())
@@ -277,8 +286,8 @@ class BxLeadTests(TestCase, BaseEntityCRUDTestMixin):
         self.entity_cls = BxLead
         self.entity_kwargs = {'title': 'NEW_TEST_LEAD', 'utm_term': 'NEW_UTM_TERM'}
 
-    def testCreate(self):
-        super(BxLeadTests, self).testCreate()
+    def testCreateAndUpdate(self):
+        super(BxLeadTests, self).testCreateAndUpdate()
 
     def testDelete(self):
         super(BxLeadTests, self).testDelete()
@@ -290,8 +299,8 @@ class BxDealTests(TestCase, BaseEntityCRUDTestMixin):
         self.entity_cls = BxDeal
         self.entity_kwargs = {'title': 'NEW_TEST_DEAL', 'utm_term': 'NEW_UTM_TERM'}
 
-    def testCreate(self):
-        super(BxDealTests, self).testCreate()
+    def testCreateAndUpdate(self):
+        super(BxDealTests, self).testCreateAndUpdate()
 
     def testDelete(self):
         super(BxDealTests, self).testDelete()
@@ -303,8 +312,8 @@ class BxCompanyTests(TestCase, BaseEntityCRUDTestMixin):
         self.entity_cls = BxCompany
         self.entity_kwargs = {'title': 'NEW_TEST_COMPANY', 'utm_term': 'NEW_UTM_TERM'}
 
-    def testCreate(self):
-        super(BxCompanyTests, self).testCreate()
+    def testCreateAndUpdate(self):
+        super(BxCompanyTests, self).testCreateAndUpdate()
 
     def testDelete(self):
         super(BxCompanyTests, self).testDelete()
@@ -316,8 +325,8 @@ class BxCompanyTests(TestCase, BaseEntityCRUDTestMixin):
 #         self.entity_cls = BxInvoice
 #         self.entity_kwargs = {'order_topic': 'NEW_TEST_INVOICE'}
 #
-#     def testCreate(self):
-#         super(BxInvoiceTests, self).testCreate()
+#     def testCreateAndUpdate(self):
+#         super(BxInvoiceTests, self).testCreateAndUpdate()
 #
 #     def testDelete(self):
 #         super(BxInvoiceTests, self).testDelete()
@@ -337,3 +346,28 @@ class DealCompanyLeadCombinationTest(TestCase):
         self.assertEqual(deal.lead_id(), lead.id())
         self.assertEqual(deal.company_id(), company.id())
         self.assertEqual(lead.company_id(), company.id())
+
+
+class Deal(BxDeal):
+    custom_field = BxField('UF_CRM_1539088441')
+
+
+class Lead(BxLead):
+    custom_field = BxField('UF_CRM_1539088367')
+
+
+class Company(BxCompany):
+    custom_field = BxField('UF_CRM_1539088478')
+
+
+class TestLead(TestCase, BaseEntityCRUDTestMixin):
+    def setUp(self):
+        self.entity_id = GLOBAL_TEST_LEAD
+        self.entity_cls = Lead
+        self.entity_kwargs = {'title': 'NEW_TEST_LEAD', 'utm_term': 'UTM_TERM'}
+
+    def testCreateAndUpdate(self):
+        super(TestLead, self).testCreateAndUpdate()
+
+    def testDelete(self):
+        super(TestLead, self).testDelete()

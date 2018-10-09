@@ -35,9 +35,13 @@ class BxEntityMeta(type):
         instance_bx_meta = deepcopy(mcs._bx_meta)
         instance_bx_meta.update(attrs.get('_bx_meta', {}))
         domain = instance_bx_meta['domain']
+        for b in bases:
+            if issubclass(b, BxEntity) and b is not BxEntity:
+                base_bx_meta = deepcopy(getattr(b, '_bx_meta', {}))
+                instance_bx_meta.update(base_bx_meta)
+                intance_dict = deepcopy(getattr(b, 'to_instance_dict', {}))
+                attrs['to_instance_dict'].update(intance_dict)
         attrs['to_instance_dict'].update({'_bx_meta': instance_bx_meta})
-        if '_bx_meta' in attrs:
-            attrs.pop('_bx_meta')
         super_obj = super(BxEntityMeta, mcs).__new__(mcs, name, bases, attrs)
         super_obj.repository = instance_bx_meta['repository'](super_obj, instance_bx_meta, domain)
         return super_obj
@@ -71,9 +75,7 @@ class BxEntity(six.with_metaclass(BxEntityMeta)):
         self.changed_fields = [] + self.to_changed_fields
 
     def __setattr__(self, key, value):
-        if key != 'changed_fields' \
-                and 'changed_fields' in self.__dict__ \
-                and key in self.__dict__:
+        if key != 'changed_fields' and key in self.__dict__:
             field = getattr(self, key, None)
             if issubclass(type(field), BxField):
                 field.validate_value(value)
@@ -94,13 +96,13 @@ class BxEntity(six.with_metaclass(BxEntityMeta)):
     def save(self):
         if self.id.value:
             result = self.repository.update(self)
-            created = result.result
+            is_ok = result.result
         else:
             result = self.repository.create(self)
             self.id = result.result
-            created = True
+            is_ok = True
         self.changed_fields = []
-        return self.id.value, created
+        return self.id.value, is_ok
 
     def delete(self):
         self.repository.delete(self)
