@@ -11,7 +11,8 @@ from .exceptions import code_exceptions as ce
 
 
 class BxQueryBuilder(object):
-    query_options = {'gte': '>=', 'gt': '>', 'lte': '<=', 'lt': '<', 'contains': '%', 'in': ''}
+    query_options = {'gte': '>=', 'gt': '>', 'lte': '<=',
+                     'lt': '<', 'contains': '%', 'in': ''}
 
     def __init__(self):
         self._filter = {}
@@ -32,22 +33,30 @@ class BxQueryBuilder(object):
             if len(options) > 2:
                 raise ValueError('Invalid query: {}'.format(k))
             if options[0] in self.query_options:
-                raise ValueError('Filter command should start with target field name. Found: {}'.format(options[0]))
+                raise ValueError('Filter command should '
+                                 'start with target field name. '
+                                 'Found: {}'.format(options[0]))
             if len(options) == 1:
                 formatted_key = 'FILTER[{}]'.format(str(options[0]).upper())
                 self._filter.update({formatted_key: v})
             else:
                 if options[1] not in self.query_options:
-                    raise ValueError('Unexpected query option. Got {}. Expected {}'.format(options[1],
-                                                                                           self.query_options.keys()))
+                    raise ValueError('Unexpected query option. '
+                                     'Got {}. Expected {}'
+                                     .format(options[1],
+                                             self.query_options.keys()))
                 if options[1] == 'in':
                     if type(v) not in (set, frozenset, tuple, list):
-                        raise ValueError('Expected list type. Got {}'.format(type(v)))
+                        raise ValueError(
+                            'Expected list type. Got {}'.format(type(v)))
                     for i, val in enumerate(v):
-                        formatted_key = 'FILTER[{}][{}]'.format(options[0].upper(), i)
+                        formatted_key = 'FILTER[{}][{}]'.format(
+                            options[0].upper(), i)
                         self._filter.update({formatted_key: val})
                 else:
-                    formatted_key = 'FILTER[{}{}]'.format(self.query_options[options[1]], str(options[0]).upper())
+                    formatted_key = 'FILTER[{}{}]'.format(
+                        self.query_options[options[1]],
+                        str(options[0]).upper())
                     self._filter.update({formatted_key: v})
         return self
 
@@ -174,10 +183,10 @@ class BxCallableMixin(object):
     def safe_call(self):
         pass
 
-    def _call(self, request_url, data):
+    def _call(self, request_url, data):  # noqa: C901
         # type: () -> dict
         """
-        Performs request, if error occured throws exception
+        Performs request, if issues error throws exception
         :return: raw result of request as dict
         """
         exception_info = {'error': '', 'error_description': ''}
@@ -190,7 +199,9 @@ class BxCallableMixin(object):
             raise ce.NotJsonResponseException(**exception_info)
         except requests.ConnectionError as e:
             exception_info['error'] = ce.NETWORK_ERROR
-            exception_info['error_description'] = 'Request failed due network error: {}'.format(str(e))
+            exception_info[
+                'error_description'] = 'Request failed due network error: {}'.format(
+                str(e))
             raise ce.RequestFailedException(**exception_info)
         if 200 <= response.status_code < 300:
             result = result
@@ -205,7 +216,8 @@ class BxCallableMixin(object):
                 status_code = 403
             raise self._http_code_to_exception[status_code](**exception_info)
         elif 400 <= response.status_code < 500:
-            exception_info['error'] = 'Failed with status code {}'.format(response.status_code)
+            exception_info['error'] = 'Failed with status code {}'.format(
+                response.status_code)
             exception_info['error_description'] = response.text
             raise ce.InvalidRequestException(**exception_info)
         elif response.status_code >= 500:
@@ -240,7 +252,8 @@ class BxBatchCommand(object):
         cmd_name = self.name if self.name else str(uuid.uuid4())[:4]
         urlencode = urllib.parse.urlencode
         return {'cmd[{}]'.format(cmd_name): '{u}?{p}'.format(u=self.query,
-                                                             p=urlencode(self.parameters))}
+                                                             p=urlencode(
+                                                                 self.parameters))}
 
 
 class BxQuery(BxBatchCommand, BxCallableMixin):
@@ -258,7 +271,9 @@ class BxQuery(BxBatchCommand, BxCallableMixin):
             raise NotImplementedError('Xml transport feature not implemented')
         super(BxQuery, self).__init__(query, params, cmd_name)
         self.transport = transport
-        self.request_url = 'https://{}.bitrix24.ru/rest/{}.{}/'.format(domain, query, transport)
+        self.request_url = 'https://{}.bitrix24.ru/rest/{}.{}/'.format(domain,
+                                                                       query,
+                                                                       transport)
 
     def call(self, max_retries=0):
         # type: (int) -> BxQueryResponse
@@ -288,7 +303,8 @@ class BxQuery(BxBatchCommand, BxCallableMixin):
         try:
             return self.call(max_retries=1)
         except ce.BxException as e:
-            error = {'error': e.error, 'error_description': e.error_description}
+            error = {'error': e.error,
+                     'error_description': e.error_description}
         except Exception:
             raise
         return BxQueryResponse({'error': error})
@@ -308,12 +324,14 @@ class BxBatch(BxCallableMixin):
         super(BxBatch, self).__init__()
         if transport == 'xml':
             raise NotImplementedError('Xml transport feature not implemented')
-        self.request_url = 'https://{}.bitrix24.ru/rest/batch.{}/'.format(domain, transport)
+        self.request_url = 'https://{}.bitrix24.ru/rest/batch.{}/'.format(
+            domain, transport)
         self.parameters = {'halt': halt, 'auth': token}
         self.commands = {}
         for c in commands:
             if not isinstance(c, BxBatchCommand):
-                raise ValueError('Command {} type is not <BxBatchCommand>'.format(c))
+                raise ValueError(
+                    'Command {} type is not <BxBatchCommand>'.format(c))
             self.commands.update(c.as_batch())
 
     def call(self, max_retries=0):
@@ -344,7 +362,8 @@ class BxBatch(BxCallableMixin):
         try:
             result = self.call(max_retries=1)
         except ce.BxException as e:
-            result = BxBatchResponse({'error': {'error': e.error, 'error_description': e.error_description}})
+            result = BxBatchResponse({'error': {'error': e.error,
+                                                'error_description': e.error_description}})
         except Exception:
             raise
         return result

@@ -7,9 +7,9 @@ from bx24_orm.core.bx_interface import BxQuery, BxBatch, BxBatchCommand, BxQuery
 from bx24_orm.core.bases import BxEntity
 from bx24_orm.core.fields import BxField, BxDateTime
 from bx24_orm.core import settings, token_storage
-from bx24_orm.core.exceptions.code_exceptions import *
-from bx24_orm.core.exceptions.bx_exceptions import *
-from bx24_orm.enitiy.crm import BxDeal, BxLead, BxCompany, BxInvoice
+from bx24_orm.core.exceptions.code_exceptions import (TokenNotFoundException, InvalidQueryException,
+                                                      InvalidTokenException)
+from bx24_orm.enitiy.crm import BxDeal, BxLead, BxCompany
 
 GLOBAL_TEST_LEAD = settings.TEST_LEAD
 GLOBAL_TEST_DEAL = settings.TEST_DEAL
@@ -246,7 +246,8 @@ class BasesAndMixinsTest(TestCase):
 class BaseEntityCRUDTestMixin(object):
 
     def testCreateAndUpdate(self):
-        import random, string
+        import random
+        import string
         before_create = len(self.entity_cls.objects.all())
         initial_entity = self.entity_cls.get(self.entity_id)
         entity = self.entity_cls(**self.entity_kwargs)

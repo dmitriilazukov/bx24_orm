@@ -4,8 +4,8 @@ from copy import deepcopy
 
 from .utils import classproperty
 from .fields import BxField
-from . import settings as bx_settings, token_storage as default_storage
-from .repository import BaseBxRepository, BxEntityQuery
+from . import settings as bx_settings
+from .repository import BaseBxRepository
 from .adapter import BaseBxAdapter
 
 
@@ -43,7 +43,9 @@ class BxEntityMeta(type):
                 attrs['to_instance_dict'].update(intance_dict)
         attrs['to_instance_dict'].update({'_bx_meta': instance_bx_meta})
         super_obj = super(BxEntityMeta, mcs).__new__(mcs, name, bases, attrs)
-        super_obj.repository = instance_bx_meta['repository'](super_obj, instance_bx_meta, domain)
+        super_obj.repository = instance_bx_meta['repository'](super_obj,
+                                                              instance_bx_meta,
+                                                              domain)
         return super_obj
 
 
@@ -69,7 +71,10 @@ class BxEntity(six.with_metaclass(BxEntityMeta)):
                     self.to_changed_fields.append(k)
                 else:
                     value = v.value
-                prefix = v.prefix if v.prefix is not None else self._bx_meta['default_prefix']
+                if v.prefix is not None:
+                    prefix = v.prefix
+                else:
+                    prefix = self._bx_meta['default_prefix']
                 new_v = val_type(v.bx_name, value, prefix)
                 setattr(self, k, new_v)
         self.changed_fields = [] + self.to_changed_fields

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 class BaseBxAdapter(object):
     def __init__(self, entity_cls):
         self.entity_cls = entity_cls

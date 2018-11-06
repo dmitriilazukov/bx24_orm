@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from bx24_orm.core import settings, token_storage, DefaultTokenStorage
+from bx24_orm.core import settings, token_storage
 from bx24_orm.core.bx_interface import (BxQuery, BxBatch, BxBatchCommand, BxQueryBuilder, BxCallableMixin,
                                         BxQueryResponse)
-from .exceptions.code_exceptions import *
-from .exceptions.bx_exceptions import *
+from .exceptions.code_exceptions import QueryLimitExceededException, InvalidTokenException, NotFoundException
+from .exceptions.bx_exceptions import EntityNotFoundException
 
 
 class BaseBxRepository(object):
@@ -80,7 +80,7 @@ class BaseBxRepository(object):
         return result
 
     def get_many(self, entity_ids):
-        self._validate_before_many(entity_ids, (int, str, unicode))
+        self._validate_before_many(entity_ids, (int, str))
         if len(entity_ids) > 50:
             raise NotImplementedError('Feature for fetching more than 50 items at time not realised')
         if len(entity_ids) == 0:
