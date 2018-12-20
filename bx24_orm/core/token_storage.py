@@ -22,6 +22,12 @@ class BaseTokenStorage(object):
     def refresh_token(self, domain):
         raise NotImplementedError()
 
+    def initialize_storage(self, domain, token, refresh_token):
+        pass
+
+    def get_client_credentials(self, domain):
+        raise NotImplementedError()
+
 
 class DefaultTokenStorage(BaseTokenStorage):
     def __init__(self, bx_settings):
@@ -32,6 +38,13 @@ class DefaultTokenStorage(BaseTokenStorage):
         storage = shelve.open(path.abspath(self.bx_settings.TOKEN_STORAGE_FILE_PATH))
         storage[domain] = {'token': token, 'refresh_token': refresh_token}
         storage.close()
+
+    def get_client_credentials(self, domain):
+        credentials = self.bx_settings.BX24_DOMAIN_SETTINGS[domain]
+        return {
+            'client_id': credentials['client_id'],
+            'client_secret': credentials['client_secret']
+        }
 
     def get_token(self, domain):
         # type: (str) -> str
@@ -47,16 +60,18 @@ class DefaultTokenStorage(BaseTokenStorage):
         storage.close()
         return result
 
+    def initialize_storage(self, domain, token, refresh_token):
+        pass
+
     def refresh_token(self, domain):
         # type: (str) -> str
         url = 'https://{}.bitrix24.ru/oauth/token/'.format(domain)
-        storage = shelve.open(self.bx_settings.TOKEN_STORAGE_FILENAME)
-        domain_options = self.bx_settings.BX24_DOMAIN_SETTINGS[domain]
+        domain_options = self.get_client_credentials(domain)
         params = {
             'client_id': domain_options['client_id'],
             'client_secret': domain_options['client_secret'],
             'grant_type': 'refresh_token',
-            'refresh_token': storage[domain]['refresh_token']
+            'refresh_token': self.get_refresh_token(domain)
         }
         response = requests.get(url, params)
         result = response.json()
