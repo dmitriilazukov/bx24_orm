@@ -11,21 +11,44 @@ class BaseTokenStorage(object):
         super(BaseTokenStorage, self).__init__(*args, **kwargs)
 
     def save_token(self, domain, token, refresh_token):
+        """
+        Save token and refresh token
+        :param domain: your bitrix 3-d level domain
+        :param token: access_token
+        :param refresh_token: refresh_token
+        """
         raise NotImplementedError()
 
     def get_token(self, domain):
+        """
+        Gets access token
+        :rtype: str
+        :param domain: your bitrix 3-d level domain
+        """
         raise NotImplementedError()
 
     def get_refresh_token(self, domain):
+        """
+        Gets refresh token
+        :rtype: str
+        :param domain: your bitrix 3-d level domain
+        """
         raise NotImplementedError()
 
     def refresh_token(self, domain):
+        """
+        Gets access token
+        :rtype: str
+        :param domain: your bitrix 3-d level domain
+        """
         raise NotImplementedError()
 
-    def initialize_storage(self, domain, token, refresh_token):
-        pass
-
     def get_client_credentials(self, domain):
+        """
+        Gets dict of client_id and client_secret credentials
+        :rtype: dict
+        :param domain: your bitrix 3-d level domain
+        """
         raise NotImplementedError()
 
 
@@ -59,9 +82,6 @@ class DefaultTokenStorage(BaseTokenStorage):
         result = storage[domain]['refresh_token']
         storage.close()
         return result
-
-    def initialize_storage(self, domain, token, refresh_token):
-        pass
 
     def refresh_token(self, domain):
         # type: (str) -> str
