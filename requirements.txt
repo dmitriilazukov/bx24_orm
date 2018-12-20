@@ -1,4 +1,4 @@
-`astroid==1.6.5
+astroid==1.6.5
 backports.functools-lru-cache==1.5
 certifi==2018.8.24
 chardet==3.0.4
@@ -14,7 +14,7 @@ mccabe==0.6.1
 pycodestyle==2.4.0
 pyflakes==2.0.0
 python-dateutil==2.7.3
-requests==2.19.1
+requests==2.21.0
 singledispatch==3.4.0.3
 six==1.11.0
 urllib3==1.23

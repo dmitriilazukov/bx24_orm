@@ -6,9 +6,27 @@ import shelve
 from os import path
 
 
-class DefaultTokenStorage(object):
+class BaseTokenStorage(object):
+    def __init__(self, *args, **kwargs):
+        super(BaseTokenStorage, self).__init__(*args, **kwargs)
+
+    def save_token(self, domain, token, refresh_token):
+        raise NotImplementedError()
+
+    def get_token(self, domain):
+        raise NotImplementedError()
+
+    def get_refresh_token(self, domain):
+        raise NotImplementedError()
+
+    def refresh_token(self, domain):
+        raise NotImplementedError()
+
+
+class DefaultTokenStorage(BaseTokenStorage):
     def __init__(self, bx_settings):
         self.bx_settings = bx_settings
+        super(DefaultTokenStorage, self).__init__()
 
     def save_token(self, domain, token, refresh_token):
         storage = shelve.open(path.abspath(self.bx_settings.TOKEN_STORAGE_FILE_PATH))
